@@ -1,7 +1,31 @@
 databaseChangeLog:
   - changeSet:
-      id: 1-schema
-      author: developer@securitease.com
+      id: 1
+      author: jvanderlith@gmail.com
       changes:
-        - sqlFile:
-            path: db/changelog/schema.sql
+        - createTable:
+            ifNotExists: true
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: orders
+            baseColumnNames: customer_id
+            constraintName: fk_orders_customer
+            referencedTableName: customer
+            referencedColumnNames: id
+            

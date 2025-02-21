@@ -1,5 +1,6 @@
 package com.example.store.entity;
 
+import com.example.store.dto.ProductDTO;
 import jakarta.persistence.*;
 
 import lombok.Data;
