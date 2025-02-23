@@ -10,3 +10,23 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    log-request-details: true  # Enables detailed logging of incoming requests
+    jackson:
+      serialization:
+        fail-on-empty-beans: false
+    main:
+      allow-bean-definition-overriding: true
+  server:
+    error:
+      include-message: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.actuate: DEBUG
+

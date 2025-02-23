@@ -1,5 +1,6 @@
 package com.example.store.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import lombok.Data;
@@ -19,5 +20,6 @@ public class Product {
     private String description;
 
     @ManyToMany(mappedBy = "products") // Correct bidirectional mapping
+    @JsonBackReference
     private List<Order> orders;
 }

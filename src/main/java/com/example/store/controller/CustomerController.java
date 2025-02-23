@@ -2,15 +2,23 @@ package com.example.store.controller;
 
 import com.example.store.dto.CustomerDTO;
 import com.example.store.entity.Customer;
+import com.example.store.entity.Order;
 import com.example.store.mapper.CustomerMapper;
 import com.example.store.repository.CustomerRepository;
+import com.example.store.repository.OrderRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/customer")
@@ -19,20 +27,58 @@ public class CustomerController {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final OrderRepository orderRepository;
 
     @GetMapping
     public List<CustomerDTO> getAllCustomers() {
         return customerMapper.customersToCustomerDTOs(customerRepository.findAll());
     }
 
-    @GetMapping
-    public CustomerDTO getCustomerByQueryString(@RequestParam String queryString) {
-        return customerMapper.customerToCustomerDTO(customerRepository.findCustomerByNameContaining(queryString));
+    @GetMapping("/search")
+    public ResponseEntity<List<CustomerDTO>> getCustomersByQuery(@RequestParam String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<Customer> customers = (List<Customer>) customerRepository.findCustomersByNameContaining(query);
+        if (customers.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(customers.stream()
+                .map(customerMapper::customerToCustomerDTO)
+                .collect(Collectors.toList()));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CustomerDTO createCustomer(@RequestBody Customer customer) {
-        return customerMapper.customerToCustomerDTO(customerRepository.save(customer));
+        if (customer.getId() != null && customerRepository.existsById(customer.getId())) {
+            throw new IllegalArgumentException("Customer with ID " + customer.getId() + " already exists. Use update instead.");
+        }
+
+        // Ensure orders are linked correctly
+        List<Order> orders = new ArrayList<>();
+        if (customer.getOrders() != null) {
+            for (Order order : customer.getOrders()) {
+                if (order.getId() != null) {
+                    Order existingOrder = orderRepository.findById(order.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + order.getId()));
+                    orders.add(existingOrder);
+                } else {
+                    order.setCustomer(customer);
+                    orders.add(order);
+                }
+            }
+        }
+
+        customer.setOrders(orders);
+
+        Customer savedCustomer = customerRepository.save(customer);
+        return customerMapper.customerToCustomerDTO(savedCustomer);
+    }
+    @PostMapping("/test")
+    public ResponseEntity<String> handleJson(@RequestBody Map<String, Object> request) {
+        return ResponseEntity.ok("Received: " + request);
     }
 }
