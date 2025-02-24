@@ -78,17 +78,15 @@ public class ProductController {
         return productMapper.productToProductDTO(savedProduct);
     }*/
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ProductDTO createProduct(@RequestBody ProductDTO productDTO) {
-        // Convert ProductDTO to Product entity
-        //Product product = productMapper.productDTOToProduct(productDTO);
         Product product = new Product();
 
         // Save Product
         product.setDescription("Product Description");
         product.setOrderIds(productDTO.getOrderIds() != null ? productDTO.getOrderIds() : "");
 
-        //Product savedProduct = productRepository.save(product);
         Product savedProduct = productRepository.save(product);
 
         // Return ProductDTO

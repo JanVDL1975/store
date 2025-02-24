@@ -15,7 +15,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
     static final ObjectMapper objectMapper = new ObjectMapper();
-    @Mapping(source = "products", target = "products")
+    //@Mapping(source = "products", target = "products")
     OrderDTO orderToOrderDTO(Order order);
 
     List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
