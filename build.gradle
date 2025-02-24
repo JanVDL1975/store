@@ -40,6 +40,7 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.postgresql:postgresql:42.7.5'
 
     // Test dependencies
     testCompileOnly 'org.projectlombok:lombok'

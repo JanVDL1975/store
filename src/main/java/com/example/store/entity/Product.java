@@ -1,12 +1,10 @@
 package com.example.store.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+//import com.example.store.utils.LongListConverter;
 import jakarta.persistence.*;
 
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -19,7 +17,8 @@ public class Product {
 
     private String description;
 
-    @ManyToMany(mappedBy = "products") // Correct bidirectional mapping
-    @JsonBackReference
-    private List<Order> orders;
+    //@Column(columnDefinition = "JSONB")
+    //@Convert(converter = LongListConverter.class)
+    private String orderIds;
 }
+

@@ -9,20 +9,18 @@ import com.example.store.dto.ProductDTO;
 import com.example.store.entity.Product;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public class ProductMapper {
+
     public ProductDTO productToProductDTO(Product product) {
-        List<Long> orderIds = new ArrayList<>();
-
-        if(product.getOrders() != null){
-            orderIds = product.getOrders().stream()
-                    .map(Order::getId)
-                    .collect(Collectors.toList());
-        }
-
+        // If orderIds is null, return an empty list
+        //List<Long> orderIds = Optional.ofNullable(product.getOrderIds()).orElse(Collections.emptyList());
+        String orderIds = Optional.ofNullable(product.getOrderIds()).orElse("");
 
         return new ProductDTO(product.getId(), product.getDescription(), orderIds);
     }
@@ -33,5 +31,10 @@ public class ProductMapper {
                 .collect(Collectors.toList());
     }
 
-   // OrderProductDTO orderToOrderProductDTO(Order order);
+    public Product productDTOToProduct(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setDescription(productDTO.getDescription());
+        product.setOrderIds(productDTO.getOrderIds()); // Map orderIds directly
+        return product;
+    }
 }

@@ -8,5 +8,6 @@ import java.util.List;
 
 public class ProductOrderDTO {
     private Long id;
-    private List<Long> ordersContainingProduct;
+    //private List<Long> ordersContainingProduct;
+    private String ordersContainingProduct;
 }

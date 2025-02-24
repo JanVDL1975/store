@@ -8,11 +8,18 @@ import java.util.List;
 public class ProductDTO {
     private Long id;
     private String description;
-    private List<Long> orderIds;
+    //private List<Long> orderIds;
+    private String orderIds;
 
     public ProductDTO(){}
 
-    public ProductDTO(Long id, String description, List<Long> orderIds) {
+    /*public ProductDTO(Long id, String description, List<Long> orderIds) {
+        this.id = id;
+        this.description = description;
+        this.orderIds = orderIds;
+    }*/
+
+    public ProductDTO(Long id, String description, String orderIds) {
         this.id = id;
         this.description = description;
         this.orderIds = orderIds;
