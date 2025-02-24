@@ -53,20 +53,54 @@ public class CustomerController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CustomerDTO createCustomer(@RequestBody Customer customer) {
+        Customer tempCustomer = new Customer();
+        Customer savedCustomer = null;
+
+        if(!customer.getName().isEmpty())
+        {
+            tempCustomer.setName(customer.getName());
+            savedCustomer = customerRepository.save(tempCustomer);
+        }
+        else {
+            throw new IllegalArgumentException("Customer name cannot be empty! ");
+        }
+
         if (customer.getId() != null && customerRepository.existsById(customer.getId())) {
             throw new IllegalArgumentException("Customer with ID " + customer.getId() + " already exists. Use update instead.");
         }
 
         // Ensure orders are linked correctly
         List<Order> orders = new ArrayList<>();
+        String passedInProducts ="";
+
         if (customer.getOrders() != null) {
             for (Order order : customer.getOrders()) {
                 if (order.getId() != null) {
                     Order existingOrder = orderRepository.findById(order.getId())
                             .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + order.getId()));
+                    Long savedCustomerId = savedCustomer.getId();
+                    Long idAssociatedWithCustomer = existingOrder.getCustomer().getId();
+                    // Check if the order is already associated with a customer
+                    int result = idAssociatedWithCustomer.compareTo(savedCustomerId);
+                    if(result!=0){
+                        // Assume that it is illegal to change an order
+                        throw new IllegalArgumentException("Order with ID " + order.getId() + " Is already associated with customer with ID " + idAssociatedWithCustomer);
+                    }
+                    else {
+                        // Create an association if the order has no Customer assigned yet.
+                        existingOrder.setCustomer(savedCustomer);
+                    }
+                    passedInProducts = existingOrder.getProducts();
+                    existingOrder.setProducts(passedInProducts);
                     orders.add(existingOrder);
                 } else {
                     order.setCustomer(customer);
+                    List<Order> passedInOrders = customer.getOrders();
+                    for (Order passedOrder:passedInOrders) {
+                        passedInProducts = passedOrder.getProducts();
+                    }
+
+                    order.setProducts(passedInProducts);
                     orders.add(order);
                 }
             }
@@ -74,7 +108,7 @@ public class CustomerController {
 
         customer.setOrders(orders);
 
-        Customer savedCustomer = customerRepository.save(customer);
+        savedCustomer = customerRepository.save(customer);
         return customerMapper.customerToCustomerDTO(savedCustomer);
     }
     @PostMapping("/test")
