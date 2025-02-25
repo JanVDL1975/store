@@ -13,12 +13,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
       format_sql: true
   mvc:
+    view:
+      prefix: none  # Prevents Spring MVC from resolving views
+      suffix: none  # Prevents Spring MVC from resolving views
     log-request-details: true  # Enables detailed logging of incoming requests
     jackson:
       serialization:
         fail-on-empty-beans: false
-    main:
-      allow-bean-definition-overriding: true
+  main:
+    allow-bean-definition-overriding: true
   server:
     error:
       include-message: always
@@ -31,4 +34,3 @@ logging:
   level:
     root: INFO
     org.springframework.boot.actuate: DEBUG
-
