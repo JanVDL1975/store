@@ -3,6 +3,7 @@ package com.example.store.controller;
 import com.example.store.dto.CustomerDTO;
 import com.example.store.entity.Customer;
 import com.example.store.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class CustomerController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<CustomerDTO> createCustomer(@Valid @RequestBody Customer customer) {
         CustomerDTO createdCustomer = customerService.createCustomer(customer);
         if(createdCustomer == null){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
