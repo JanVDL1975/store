@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,11 +37,15 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());  // Collect mapped DTOs in a List
     }
 
-    @Override
     public OrderDTO getOrderById(Long orderId) {
-        return orderRepository.findById(orderId)
-                .map(orderMapper::orderToOrderDTO)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + orderId));
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            OrderDTO orderDTO = orderMapper.orderToOrderDTO(order);
+            System.out.println(orderDTO); // Debug log
+            return orderDTO;
+        }
+        throw new OrderNotFoundException("Order not found with ID: " + orderId);
     }
 
     public OrderDTO createOrder(Order order) throws InvalidOrderDataException {

@@ -10,12 +10,24 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CustomerMapper.class)
 public interface OrderMapper {
 
-    @Mapping(source = "customer", target = "customer")  // Map customer as a whole
-    @Mapping(source = "customer.orders", target = "customer.customerOrders", qualifiedByName = "mapOrdersToString")
+    @Mapping(source = "id", target = "orderId")
+    @Mapping(source = "description", target = "orderDescription")
+    @Mapping(source = "customer", target = "customer") // Map the entire customer object
+    //@Mapping(source = "customer.orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
     OrderDTO orderToOrderDTO(Order order);
+
+    @Named("mapOrdersToString")
+    default String mapOrdersToString(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return "";
+        }
+        return orders.stream()
+                .map(order -> "ID: " + order.getId() + ", Desc: " + order.getDescription())
+                .collect(Collectors.joining(", "));
+    }
 
     List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
 
@@ -58,7 +70,7 @@ public interface OrderMapper {
     }
 
     // Custom method to map the orders list to a concatenated string of descriptions
-    @Named("mapOrdersToString")
+    /*@Named("mapOrdersToString")
     default String mapOrdersToString(List<Order> orders) {
         if (orders == null || orders.isEmpty()) {
             return "";
@@ -67,7 +79,7 @@ public interface OrderMapper {
         return orders.stream()
                 .map(order -> "{ID: " + order.getId() + ", Desc: " + order.getDescription() + "}, ")
                 .collect(Collectors.joining(", "));  // Join them into a single string
-    }
+    }*/
 
     // Assuming these methods extract customer details from the Order entity
     private Long orderCustomerId(Order order) {

@@ -16,7 +16,9 @@ import java.util.stream.Collectors;
 public interface CustomerMapper {
 
     // Mapping customer to CustomerDTO
-    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString") // This can be mapped as a string or list depending on your requirements
     CustomerDTO customerToCustomerDTO(Customer customer);
 
     @Named("mapOrdersToString")
