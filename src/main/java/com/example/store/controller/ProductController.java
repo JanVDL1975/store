@@ -49,35 +49,6 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /*@PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ProductDTO createProduct(@RequestBody Product product) {
-        Product unvalidatedProduct = new Product();
-
-        if (product.getId() != null && productRepository.existsById(product.getId())) {
-            throw new IllegalArgumentException("Product with ID " + product.getId() + " already exists. Use update instead.");
-        }
-
-        List<Long> orderIds = product.getOrderIds() != null ? product.getOrderIds() : new ArrayList<>();  // ✅ Avoid null
-        List<Long> validOrderIds = new ArrayList<>();
-
-        for (Long id : orderIds) {
-            Order existingOrder = orderRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + id));
-
-            validOrderIds.add(id);
-        }
-
-        if (product.getDescription() != null && !product.getDescription().isEmpty()) {
-            unvalidatedProduct.setDescription(product.getDescription());
-        }
-
-        unvalidatedProduct.setOrderIds(validOrderIds);
-
-        Product savedProduct = productRepository.save(unvalidatedProduct);
-        return productMapper.productToProductDTO(savedProduct);
-    }*/
-
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ProductDTO createProduct(@RequestBody ProductDTO productDTO) {
