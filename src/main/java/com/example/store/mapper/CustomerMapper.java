@@ -12,24 +12,15 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring",uses = {OrderMapperHelper.class})
 public interface CustomerMapper {
 
     // Mapping customer to CustomerDTO
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
-    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString") // This can be mapped as a string or list depending on your requirements
+    @Mapping(source = "customerOrders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
+    @Named("customerToCustomerDTO")
     CustomerDTO customerToCustomerDTO(Customer customer);
-
-    @Named("mapOrdersToString")
-    default String mapOrdersToString(List<Order> orders) {
-        if (orders == null || orders.isEmpty()) {
-            return "";
-        }
-        return orders.stream()
-                .map(order -> "{ID: " + order.getId() + ", Desc: " + order.getDescription() + "}, ")
-                .collect(Collectors.joining("; "));
-    }
 
     @Named("mapOrdersToIds")
     default String mapOrdersToIds(List<Order> orders) {
@@ -42,7 +33,7 @@ public interface CustomerMapper {
     }
 
     // Map list of customers to list of CustomerDTOs
-    List<CustomerDTO> customersToCustomerDTOs(List<Customer> customer);
+    //List<CustomerDTO> customersToCustomerDTOs(List<Customer> customer);
 }
 
 

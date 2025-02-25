@@ -19,5 +19,5 @@ public class Customer {
     private String name;
     @JsonIgnore // Ignoring orders in the Customer entity directly.
     @OneToMany(mappedBy = "customer", cascade = CascadeType.MERGE, orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
+    private List<Order> customerOrders = new ArrayList<>();
 }

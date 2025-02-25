@@ -53,15 +53,15 @@ public class CustomerServiceImpl implements CustomerService {
         Customer savedCustomer = customerRepository.save(customer);
 
         List<Order> managedOrders = new ArrayList<>();
-        if (customer.getOrders() != null) {
-            for (Order order : customer.getOrders()) {
+        if (customer.getCustomerOrders() != null) {
+            for (Order order : customer.getCustomerOrders()) {
                 Order managedOrder = processOrder(order, savedCustomer);
                 managedOrders.add(managedOrder);
             }
         }
 
         // Set orders and save again
-        savedCustomer.setOrders(managedOrders);
+        savedCustomer.setCustomerOrders(managedOrders);
         savedCustomer = customerRepository.save(savedCustomer);
 
         return customerMapper.customerToCustomerDTO(savedCustomer);
@@ -109,7 +109,7 @@ public class CustomerServiceImpl implements CustomerService {
         customerDTO.setName(customer.getName());
 
         // Map orders to a comma-separated string of order descriptions
-        String orderDescriptions = getOrderDescriptionsAsString(customer.getOrders());
+        String orderDescriptions = getOrderDescriptionsAsString(customer.getCustomerOrders());
         customerDTO.setCustomerOrdersIds(orderDescriptions);
 
         return customerDTO;

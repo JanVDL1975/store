@@ -5,6 +5,7 @@ import com.example.store.entity.Order;
 import com.example.store.exceptions.InvalidOrderDataException;
 import com.example.store.exceptions.OrderNotFoundException;
 import com.example.store.mapper.OrderMapper;
+import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 import com.example.store.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final CustomerRepository customerRepository;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, OrderMapper orderMapper) {
+    public OrderServiceImpl(OrderRepository orderRepository, CustomerRepository customerRepository, OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
+        this.customerRepository = customerRepository;
         this.orderMapper = orderMapper;
     }
 
@@ -48,18 +51,19 @@ public class OrderServiceImpl implements OrderService {
         throw new OrderNotFoundException("Order not found with ID: " + orderId);
     }
 
-    public OrderDTO createOrder(Order order) throws InvalidOrderDataException {
-        // Validate the order data
+    @Override
+    public OrderDTO createOrder(OrderDTO orderDTO) throws InvalidOrderDataException {
+        Order order = orderMapper.orderDTOToOrder(orderDTO);
+
+        // Validate order data
         validateOrderData(order);
 
-        // Process the order and assign the correct customer
-        Order managedOrder = processOrder(order);
+        // Process order (either update existing or create a new one)
+        Order processedOrder = processOrder(order);
 
-        // Save the order to the database
-        managedOrder = orderRepository.save(managedOrder);
-
-        // Return the mapped OrderDTO
-        return orderMapper.orderToOrderDTO(managedOrder);
+        // Save and return DTO
+        Order savedOrder = orderRepository.save(processedOrder);
+        return orderMapper.orderToOrderDTO(savedOrder);
     }
 
     private void validateOrderData(Order order) throws InvalidOrderDataException {
@@ -72,18 +76,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Order processOrder(Order order) {
-        // If the order already has an ID, it should be updated
         if (order.getId() != null) {
             return orderRepository.findById(order.getId())
                     .map(existingOrder -> {
-                        // You can add more checks or update the order fields here
                         existingOrder.setDescription(order.getDescription());
                         existingOrder.setProducts(order.getProducts() != null ? order.getProducts() : "");
                         return existingOrder;
                     })
                     .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + order.getId()));
         } else {
-            // If the order doesn't have an ID, create a new one
             Order newOrder = new Order();
             newOrder.setDescription(order.getDescription());
             newOrder.setCustomer(order.getCustomer()); // Associate with the customer

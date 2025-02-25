@@ -1,11 +1,6 @@
 package com.example.store.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
-import lombok.Setter;
-
-import java.util.List;
 
 @Data
 public class CustomerDTO {

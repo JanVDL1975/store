@@ -1,8 +1,11 @@
 package com.example.store.mapper;
 
+import com.example.store.dto.CustomerDTO;
 import com.example.store.dto.OrderDTO;
+import com.example.store.entity.Customer;
 import com.example.store.entity.Order;
 import com.example.store.dto.OrderCustomerDTO;
+import com.example.store.entity.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -10,27 +13,35 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = CustomerMapper.class)
+@Mapper(componentModel = "spring", uses = {CustomerMapper.class, OrderMapperHelper.class})
 public interface OrderMapper {
-
     @Mapping(source = "id", target = "orderId")
     @Mapping(source = "description", target = "orderDescription")
-    @Mapping(source = "customer", target = "customer") // Map the entire customer object
-    //@Mapping(source = "customer.orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
+    @Mapping(source = "customer", target = "customer") // Map entire customer object
+    @Mapping(source = "products", target = "products")
     OrderDTO orderToOrderDTO(Order order);
 
-    @Named("mapOrdersToString")
-    default String mapOrdersToString(List<Order> orders) {
-        if (orders == null || orders.isEmpty()) {
-            return "";
-        }
-        return orders.stream()
-                .map(order -> "ID: " + order.getId() + ", Desc: " + order.getDescription())
-                .collect(Collectors.joining(", "));
-    }
+    // Mapping Customer to CustomerDTO
+    @Named("orderCustomerToCustomerDTO")
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "customerOrders", target = "customerOrders")
+    CustomerDTO orderCustomerToCustomerDTO(Customer customer);
+
+    @Mapping(source = "products", target = "products", qualifiedByName = "mapStringToProducts")
+    Order orderDTOToOrder(OrderDTO orderDTO);
 
     List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
 
+    @Named("listToString")
+    default String listToString(List<String> products) {
+        return ProductMapperHelper.mapProductsToString(products);
+    }
+
+    @Named("stringToList")
+    default List<String> stringToList(String products) {
+        return ProductMapperHelper.mapStringToProducts(products);
+    }
     @Named("mapOrdersToIds")
     default String mapOrdersToIds(List<Order> orders) {
         if (orders == null || orders.isEmpty()) {
@@ -49,9 +60,9 @@ public interface OrderMapper {
     }
 
 
-    @Mapping(source = "customer.id", target = "customerId")
-    @Mapping(source = "customer.name", target = "customerName")
-    @Mapping(source = "customer.orders", target = "customerOrders", qualifiedByName = "mapOrdersToIds")
+    @Mapping(source = "customer", target = "customerId", qualifiedByName = "orderCustomerId")
+    @Mapping(source = "customer", target = "customerName", qualifiedByName = "orderCustomerName")
+    @Mapping(source = "customer", target = "customerOrders", qualifiedByName = "orderCustomerOrders")
     public default OrderCustomerDTO orderToOrderCustomerDTO(Order order) {
         if (order == null) {
             return null;
@@ -64,34 +75,35 @@ public interface OrderMapper {
         orderCustomerDTO.setCustomerName(orderCustomerName(order));
 
         // Mapping orders to a concatenated string
-        orderCustomerDTO.setCustomerOrders(mapOrdersToString(orderCustomerOrders(order)));
+        orderCustomerDTO.setCustomerOrders(orderCustomerOrders(order));
 
         return orderCustomerDTO;
     }
 
-    // Custom method to map the orders list to a concatenated string of descriptions
-    /*@Named("mapOrdersToString")
-    default String mapOrdersToString(List<Order> orders) {
-        if (orders == null || orders.isEmpty()) {
-            return "";
-        }
-
-        return orders.stream()
-                .map(order -> "{ID: " + order.getId() + ", Desc: " + order.getDescription() + "}, ")
-                .collect(Collectors.joining(", "));  // Join them into a single string
-    }*/
-
-    // Assuming these methods extract customer details from the Order entity
-    private Long orderCustomerId(Order order) {
-        return order.getCustomer() != null ? order.getCustomer().getId() : null;
+    // Assuming the `Order` object has a `Customer` field or method to get the customer
+    @Named("orderCustomerOrders")
+    default String orderCustomerOrders(Order order) {
+        return order.getCustomer() != null
+                ? String.join(", ", order.getCustomer().getCustomerOrders().stream().map(Order::toString).collect(Collectors.toList()))
+                : "";
     }
 
-    private String orderCustomerName(Order order) {
+    public default String orderCustomerName(Order order) {
+        // Assuming Order has a method `getCustomer` and Customer has a `getName()` method
         return order.getCustomer() != null ? order.getCustomer().getName() : null;
     }
 
-    private List<Order> orderCustomerOrders(Order order) {
-        return order.getCustomer() != null ? order.getCustomer().getOrders() : null;
+    public default Long orderCustomerId(Order order) {
+        // Assuming Order has a method `getCustomer` and Customer has a `getId()` method
+        return order.getCustomer() != null ? order.getCustomer().getId() : null;
     }
 
+    // Helper method to convert a List<Product> to a concatenated string
+    @Named("mapProductsToString")
+    default String mapProductsToString(List<Product> products) {
+        if (products != null) {
+            return products.stream().map(Product::toString).collect(Collectors.joining(", "));
+        }
+        return "";
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.store.entity;
 
-//import com.example.store.utils.LongListConverter;
 import jakarta.persistence.*;
 
 import lombok.Data;

@@ -1,12 +1,9 @@
 package com.example.store.entity;
 
-import com.example.store.dto.ProductDTO;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 import lombok.Data;
-
-import java.util.List;
 
 @Entity
 @Data
