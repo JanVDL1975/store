@@ -17,19 +17,6 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    /*
-    @GetMapping
-    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
-        List<CustomerDTO> allCustomers = customerService.getAllCustomers();
-        if (allCustomers.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        else
-        {
-            return new ResponseEntity<>(allCustomers, HttpStatus.OK);
-        }
-    }*/
-
     @GetMapping
     public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
         List<CustomerDTO> allCustomers = customerService.getAllCustomers();

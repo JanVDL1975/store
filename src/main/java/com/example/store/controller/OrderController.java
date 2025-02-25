@@ -1,18 +1,14 @@
 package com.example.store.controller;
 
 import com.example.store.dto.OrderDTO;
-import com.example.store.entity.Customer;
-import com.example.store.entity.Order;
+import com.example.store.exceptions.InvalidOrderDataException;
 import com.example.store.mapper.OrderMapper;
 import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 
 import com.example.store.service.OrderService;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,20 +61,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderDTO createOrder(@RequestBody Order order) {
-        // Check if customer is null or its id is missing
-        if (order.getCustomer() == null || order.getCustomer().getId() == null) {
-            throw new IllegalArgumentException("Customer id must not be null");
-        }
-
-        // Fetch the Customer from the database using the provided id
-        Customer customer = customerRepository.findById(order.getCustomer().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
-
-        // Set the fetched Customer to the Order
-        order.setCustomer(customer);
-
-        // Save the order and map it to DTO
-        return orderMapper.orderToOrderDTO(orderRepository.save(order));
+    public OrderDTO createOrder(@RequestBody OrderDTO orderDTO) throws InvalidOrderDataException {
+        return orderService.createOrder(orderDTO);
     }
 }
