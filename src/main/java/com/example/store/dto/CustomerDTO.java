@@ -10,6 +10,5 @@ import java.util.List;
 public class CustomerDTO {
     private Long id;
     private String name;
-    @JsonManagedReference
-    private List<CustomerOrderDTO> orders;
+    private String customerOrdersIds;  // Changed to a string of order IDs.
 }

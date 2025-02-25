@@ -4,6 +4,7 @@ import com.example.store.dto.CustomerDTO;
 import com.example.store.entity.Customer;
 import com.example.store.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,8 @@ import java.util.List;
 @RequestMapping("/customer")
 @RequiredArgsConstructor
 public class CustomerController {
-    private final CustomerService customerService;
+    @Autowired
+    private CustomerService customerService;
 
     /*
     @GetMapping
@@ -55,8 +57,8 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
-        CustomerDTO customer = customerService.getCustomer(customerId);
+    public ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long customerId) {
+        CustomerDTO customer = customerService.getCustomerById(customerId);
         if (customer == null) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

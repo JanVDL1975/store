@@ -8,6 +8,6 @@ public class OrderCustomerDTO {
     private String orderDescription;
     private Long customerId;
     private String customerName;
-    private String customerOrders;
+    private String customerOrders; // Concatenated string of orders
 }
 

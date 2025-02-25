@@ -12,6 +12,7 @@ import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 import com.example.store.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +28,18 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerMapper customerMapper;
     private final OrderRepository orderRepository;
 
+    // Constructor injection for dependencies
+    @Autowired
+    public CustomerServiceImpl(CustomerRepository customerRepository,
+                               OrderRepository orderRepository,
+                               CustomerMapper customerMapper) {
+        this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
+        this.customerMapper = customerMapper;
+    }
+
     @Override
-    public CustomerDTO getCustomer(Long customerId) {
+    public CustomerDTO getCustomerById(Long customerId) {
         return customerRepository.findById(customerId)
                 .map(customerMapper::customerToCustomerDTO)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
@@ -85,7 +96,32 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDTO> getAllCustomers() {
-        return customerMapper.customersToCustomerDTOs(customerRepository.findAll());
+        // Fetch all customers from the database
+        List<Customer> customers = customerRepository.findAll();
+
+        // For each customer, fetch the orders using the list of order IDs
+        return customers.stream()
+                .map(customer -> {
+                    CustomerDTO customerDTO = customerMapper.customerToCustomerDTO(customer);
+
+                    // Get the order IDs from the customer's orders
+                    List<Long> orderIds = customer.getOrders().stream()
+                            .map(Order::getId)
+                            .collect(Collectors.toList());
+
+                    // Fetch orders based on order IDs using the correct method
+                    List<Order> orders = orderRepository.findByIdIn(orderIds);
+
+                    // Map orders to their IDs as a comma-separated string
+                    String customerOrdersIds = orders.stream()
+                            .map(order -> String.valueOf(order.getId()))
+                            .collect(Collectors.joining(", "));
+
+                    customerDTO.setCustomerOrdersIds(customerOrdersIds);
+
+                    return customerDTO;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

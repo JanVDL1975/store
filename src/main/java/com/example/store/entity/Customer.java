@@ -17,9 +17,7 @@ public class Customer {
     private Long id;
 
     private String name;
-
+    @JsonIgnore // Ignoring orders in the Customer entity directly.
     @OneToMany(mappedBy = "customer", cascade = CascadeType.MERGE, orphanRemoval = true)
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIgnore
     private List<Order> orders = new ArrayList<>();
 }

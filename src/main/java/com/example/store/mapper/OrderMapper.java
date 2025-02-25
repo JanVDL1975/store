@@ -17,12 +17,16 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
-    @Mapping(source = "customer.id", target = "customerId")
-    @Mapping(source = "description", target = "description")
+    // Mapping from Order to OrderDTO
+    @Mapping(source = "id", target = "orderId")  // Map Order's id to OrderDTO's orderId
+    @Mapping(source = "description", target = "orderDescription")  // Map Order's description to OrderDTO's orderDescription
+    @Mapping(source = "customer.id", target = "customer.customerId")  // Map Customer's id to OrderDTO's customerId
+    @Mapping(source = "customer.name", target = "customer.customerName")  // Map Customer's name to OrderDTO's customerName
+    @Mapping(source = "customer.orders", target = "customer.customerOrders")  // Map Customer's orders to a concatenated string of order IDs
     OrderDTO orderToOrderDTO(Order order);
 
-    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
-    OrderCustomerDTO orderToOrderCustomerDTO(Customer customer);
+    // Map list of orders to list of OrderDTOs
+    List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
 
     @Named("mapOrdersToString")
     default String mapOrdersToString(List<Order> orders) {
@@ -30,12 +34,30 @@ public interface OrderMapper {
             return "No Orders";
         }
         return orders.stream()
-                .map(Order::getDescription) // Convert to a list of descriptions
-                .collect(Collectors.joining(", ")); // Join as a single string
+                .map(order -> String.valueOf(order.getId())) // Get order IDs as strings
+                .collect(Collectors.joining(", ")); // Join IDs as a single string
     }
 
-    List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
+    // Mapping from Order to OrderCustomerDTO
+    @Mapping(source = "id", target = "orderId")
+    @Mapping(source = "description", target = "orderDescription")
+    @Mapping(source = "customer.id", target = "customerId")
+    @Mapping(source = "customer.name", target = "customerName")
+    @Mapping(source = "customer.orders", target = "customerOrders")
+    OrderCustomerDTO orderToOrderCustomerDTO(Order order);
+
+    // Helper method to convert List<Order> to a comma-separated string of order IDs
+    default String map(List<Order> orders) {
+        if (orders == null) {
+            return "";
+        }
+        return orders.stream()
+                .map(order -> String.valueOf(order.getId()))
+                .collect(Collectors.joining(", "));
+    }
 }
+
+
 
 
 
