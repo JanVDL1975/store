@@ -1,5 +1,7 @@
 package com.example.store.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import java.util.List;
@@ -8,5 +10,6 @@ import java.util.List;
 public class CustomerDTO {
     private Long id;
     private String name;
+    @JsonManagedReference
     private List<CustomerOrderDTO> orders;
 }

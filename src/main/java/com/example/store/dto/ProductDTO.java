@@ -13,12 +13,6 @@ public class ProductDTO {
 
     public ProductDTO(){}
 
-    /*public ProductDTO(Long id, String description, List<Long> orderIds) {
-        this.id = id;
-        this.description = description;
-        this.orderIds = orderIds;
-    }*/
-
     public ProductDTO(Long id, String description, String orderIds) {
         this.id = id;
         this.description = description;

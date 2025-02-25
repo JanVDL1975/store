@@ -15,6 +15,7 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
 
+    /*
     @GetMapping
     public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
         List<CustomerDTO> allCustomers = customerService.getAllCustomers();
@@ -25,6 +26,15 @@ public class CustomerController {
         {
             return new ResponseEntity<>(allCustomers, HttpStatus.OK);
         }
+    }*/
+
+    @GetMapping
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+        List<CustomerDTO> allCustomers = customerService.getAllCustomers();
+        if (allCustomers.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(allCustomers);
     }
 
     @GetMapping("/search")

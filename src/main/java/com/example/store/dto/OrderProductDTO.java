@@ -9,5 +9,5 @@ import java.util.List;
 public class OrderProductDTO {
     private Long id;
     private String description;
-    private List<Long> products;
+    private String products;
 }

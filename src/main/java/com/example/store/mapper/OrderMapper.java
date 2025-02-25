@@ -9,25 +9,33 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
-    static final ObjectMapper objectMapper = new ObjectMapper();
-    //@Mapping(source = "products", target = "products")
+
+    @Mapping(source = "customer.id", target = "customerId")
+    @Mapping(source = "description", target = "description")
     OrderDTO orderToOrderDTO(Order order);
 
-    List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
+    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
+    OrderCustomerDTO orderToOrderCustomerDTO(Customer customer);
 
-    //List<OrderDTO> ordersToOrderDTOs(String orders);
-    public static List<OrderDTO> ordersToOrderDTOs(String orders) {
-        try {
-            return objectMapper.readValue(orders, new TypeReference<List<OrderDTO>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to convert JSON string to List<OrderDTO>", e);
+    @Named("mapOrdersToString")
+    default String mapOrdersToString(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return "No Orders";
         }
+        return orders.stream()
+                .map(Order::getDescription) // Convert to a list of descriptions
+                .collect(Collectors.joining(", ")); // Join as a single string
     }
 
-    OrderCustomerDTO orderToOrderCustomerDTO(Customer customer);
+    List<OrderDTO> ordersToOrderDTOs(List<Order> orders);
 }
+
+
+
