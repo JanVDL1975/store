@@ -16,8 +16,18 @@ import java.util.stream.Collectors;
 public interface CustomerMapper {
 
     // Mapping customer to CustomerDTO
-    @Mapping(source = "orders", target = "customerOrdersIds", qualifiedByName = "mapOrdersToIds")
+    @Mapping(source = "orders", target = "customerOrders", qualifiedByName = "mapOrdersToString")
     CustomerDTO customerToCustomerDTO(Customer customer);
+
+    @Named("mapOrdersToString")
+    default String mapOrdersToString(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return "";
+        }
+        return orders.stream()
+                .map(order -> "{ID: " + order.getId() + ", Desc: " + order.getDescription() + "}, ")
+                .collect(Collectors.joining("; "));
+    }
 
     @Named("mapOrdersToIds")
     default String mapOrdersToIds(List<Order> orders) {
@@ -25,8 +35,8 @@ public interface CustomerMapper {
             return "";
         }
         return orders.stream()
-                .map(order -> String.valueOf(order.getId())) // Get order IDs as strings
-                .collect(Collectors.joining(", ")); // Join IDs as a single string
+                .map(order -> String.valueOf(order.getId())) // Convert order ID to string
+                .collect(Collectors.joining(", ")); // Join with commas
     }
 
     // Map list of customers to list of CustomerDTOs
