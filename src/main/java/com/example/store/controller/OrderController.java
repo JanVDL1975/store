@@ -7,9 +7,11 @@ import com.example.store.mapper.OrderMapper;
 import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 
+import com.example.store.service.OrderService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,16 +21,27 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order")
-@RequiredArgsConstructor
 public class OrderController {
-
+    private final OrderService orderService;
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final CustomerRepository customerRepository;
 
+    @Autowired
+    public OrderController(OrderService orderService, OrderRepository orderRepository, OrderMapper orderMapper, CustomerRepository customerRepository) {
+        this.orderService = orderService;
+        this.orderRepository = orderRepository;
+        this.orderMapper = orderMapper;
+        this.customerRepository = customerRepository;
+    }
+
     @GetMapping
-    public List<OrderDTO> getAllOrders() {
-        return orderMapper.ordersToOrderDTOs(orderRepository.findAll());
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        List<OrderDTO> allOrders = orderService.getAllOrders();
+        if (allOrders.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(allOrders);
     }
 
     @GetMapping("/{id}")
@@ -37,6 +50,17 @@ public class OrderController {
                 .map(orderMapper::orderToOrderDTO)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderDTO> geOrderById(@PathVariable Long orderId) {
+        OrderDTO order = orderService.getOrderById(orderId);
+        if (order == null) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        else {
+            return new ResponseEntity<>(order, HttpStatus.OK);
+        }
     }
 
     @PostMapping
