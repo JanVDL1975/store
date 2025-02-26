@@ -70,3 +70,49 @@ Think carefully about the impact on performance when implementing your changes
 The specifications of the tasks have been left deliberately vague. You will be required to exercise judgement about what to deliver - in a real world environment, you would clarify these points in refinement, but since this is a project to be completed without interaction, feel free to make assumptions - but be prepared to defend them when asked.
 There's no CI pipeline associated with this project, but in reality there would be. Consider the things that you would expect that pipeline to verify before allowing your code to be promoted
 Feel free to refactor the codebase if necessary. Bad choices were deliberately made when creating this project.
+---
+
+# Implementation
+## Repo location
+https://github.com/JanVDL1975/store/tree/StringifiedEntityLists
+## Approach
+* The given tasks were more or less done in the order that they were given.
+* Postman was used to trigger the endpoints during development.
+* The resulting outputs were then used for debugging, in addition to Logger outputs.
+
+## Deviations
+   * I made use of a local PostGres DB installed on my machine.
+   * I disabled Liquibase by removing it from the project for development.
+
+## What was done
+* Extended the order endpoint to find a specific order, by ID
+* Extended the customer endpoint to find customers based on a query string
+* Added a new endpoint /products
+* Added POST and GET endpoints
+* Changed the orders endpoint to return a list of products
+## Additional
+* Added Postman scripts for testing the endpoints manually.
+* Added validations for the base DTO's: CustomerDTO, OrderDTO, ProductDTO.
+* Added validations for the controllers for the requestbodies.
+* Added Tests for the Controllers.
+* Added a GitHub Actions CI/CD pipeline.
+
+## Issues encountered
+### Circular references 
+* Since a customer refers to orders and an order refers back to a customer, it causes circular references.
+* The serializer is attempting to serialize this circular path, which leads to StackOverflowExceptions.
+* One needs to break the circular referencing
+
+#### Steps to break the circular reference
+* One approach would be to change the Lists to comma separated Strings, containing the ID's of the List elements.
+* If you then work with Strings, the serializer doesn't attempt to reference the objects.
+* When you need to recover the items from the Strings, you would need to do a search of the tables in the back end, traversing the former List items.
+* In other words, the ID's in the String are used to find the associated objects.
+* The returned objects can also now be turned into a string format.
+
+### Mapping issues in the Mapper elements
+* When the mappings are specified for the Mapper interface methods, I seem to encounter mismatches.
+* The mismatches have something to do with the interaction between the Mappers and the DTO's.
+* So far the mismatches could not be resolved.
+
+
