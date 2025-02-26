@@ -44,13 +44,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  format: int64
-                descriptioon:
-                  type: string
+              $ref: '#/components/schemas/Order'
   /customer:
     get:
       summary: Get Customers
@@ -74,19 +68,62 @@ paths:
       responses:
         '201':
           description: Created
+        '204':
+          description: No Content - Invalid request or failed creation
       operationId: createCustomer
       description: Create a new customer
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  format: int64
-                name:
-                  type: string
+              $ref: '#/components/schemas/Customer'
+  /customer/{customerId}:
+    get:
+      summary: Get Customer by ID
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '204':
+          description: No Content - Customer not found
+      operationId: getCustomerById
+      description: Get a customer by ID
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: The ID of the customer to retrieve
+        schema:
+          type: integer
+          format: int64
+  /customer/search:
+    get:
+      summary: Search Customers
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+      operationId: getCustomersByQuery
+      description: Search customers by a query string
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Query string for customer search
+          schema:
+            type: string
   /products:
     get:
       summary: Get Products
@@ -98,17 +135,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  description:
-                    type: string
-                  orders:
-                    type: array
-                    items:
-                      type: integer
-                      format: int64
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
       operationId: getProducts
       description: Get all products
     post:
@@ -124,15 +153,29 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  format: int64
-                description:
-                  type: string
-                  x-stoplight:
-                    id: jbh0jzkonppv8
+              $ref: '#/components/schemas/Product'
+  /products/{id}:
+    get:
+      summary: Get Product by ID
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      operationId: getProductById
+      description: Get a product by ID
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ID of the product to retrieve
+        schema:
+          type: integer
+          format: int64
 components:
   schemas:
     Order:
@@ -150,7 +193,7 @@ components:
             id:
               type: integer
               format: int64
-            description:
+            name:
               type: string
     Customer:
       title: Customer
@@ -171,8 +214,20 @@ components:
                 format: int64
               description:
                 type: string
-                x-stoplight:
-                  id: mq08x82g95zl9
+    Product:
+      title: Product
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+        orders:
+          type: array
+          items:
+            type: integer
+            format: int64
 tags:
   - name: store
     description: store operations
