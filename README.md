@@ -97,6 +97,12 @@ https://github.com/JanVDL1975/store/tree/StringifiedEntityLists
 * Added Tests for the Controllers.
 * Added a GitHub Actions CI/CD pipeline.
 
+### Note:
+* Not all possibilities were included in the Postman tests.
+* The validations were added, but could not be checked.
+* The test code could also not be tested.
+* The GitHubActions pipeline needs a Docker image in my Docker account. The framework is in place. 
+
 ## Issues encountered
 ### Circular references 
 * Since a customer refers to orders and an order refers back to a customer, it causes circular references.
