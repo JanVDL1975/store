@@ -7,7 +7,7 @@ import com.example.store.exceptions.CustomerNotFoundException;
 import com.example.store.exceptions.InvalidCustomerDataException;
 import com.example.store.exceptions.OrderBelongsToAnotherCustomerException;
 import com.example.store.exceptions.OrderNotFoundException;
-import com.example.store.mapper.CustomerMapper;
+import com.example.store.mapper.CombinedMapperHelper;
 import com.example.store.repository.CustomerRepository;
 import com.example.store.repository.OrderRepository;
 import com.example.store.service.CustomerService;
@@ -25,23 +25,23 @@ import java.util.stream.Collectors;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final CustomerMapper customerMapper;
+    private final CombinedMapperHelper combinedMapperHelper;
     private final OrderRepository orderRepository;
 
     // Constructor injection for dependencies
     @Autowired
     public CustomerServiceImpl(CustomerRepository customerRepository,
                                OrderRepository orderRepository,
-                               CustomerMapper customerMapper) {
+                               CombinedMapperHelper combinedMapperHelper) {
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
-        this.customerMapper = customerMapper;
+        this.combinedMapperHelper = combinedMapperHelper;
     }
 
     @Override
     public CustomerDTO getCustomerById(Long customerId) {
         return customerRepository.findById(customerId)
-                .map(customerMapper::customerToCustomerDTO)
+                .map(combinedMapperHelper::customerToCustomerDTO)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
     }
 
@@ -64,7 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
         savedCustomer.setCustomerOrders(managedOrders);
         savedCustomer = customerRepository.save(savedCustomer);
 
-        return customerMapper.customerToCustomerDTO(savedCustomer);
+        return combinedMapperHelper.customerToCustomerDTO(savedCustomer);
     }
 
     private void validateCustomerData(Customer customer) {
@@ -98,7 +98,7 @@ public class CustomerServiceImpl implements CustomerService {
     public List<CustomerDTO> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll(); // Fetch all customers
         return customers.stream()
-                .map(customerMapper::customerToCustomerDTO) // Map each customer to CustomerDTO
+                .map(combinedMapperHelper::customerToCustomerDTO) // Map each customer to CustomerDTO
                 .collect(Collectors.toList());
     }
 
@@ -134,7 +134,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         return ResponseEntity.ok(customers.stream()
-                .map(customerMapper::customerToCustomerDTO)
+                .map(combinedMapperHelper::customerToCustomerDTO)
                 .collect(Collectors.toList()));
     }
 }

@@ -13,11 +13,11 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {CustomerMapper.class, OrderMapperHelper.class})
+@Mapper(componentModel = "spring", uses = {CombinedMapperHelper.class})
 public interface OrderMapper {
     @Mapping(source = "id", target = "orderId")
     @Mapping(source = "description", target = "orderDescription")
-    @Mapping(source = "customer", target = "customer") // Map entire customer object
+    @Mapping(source = "customer", target = "customer", qualifiedByName ="mapListOfItemsToStringStatic" ) // Map entire customer object
     @Mapping(source = "products", target = "products")
     OrderDTO orderToOrderDTO(Order order);
 
@@ -25,7 +25,7 @@ public interface OrderMapper {
     @Named("orderCustomerToCustomerDTO")
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
-    @Mapping(source = "customerOrders", target = "customerOrders")
+    @Mapping(source = "customerOrders", target = "customerOrders", qualifiedByName ="listToString")
     CustomerDTO orderCustomerToCustomerDTO(Customer customer);
 
     @Mapping(source = "products", target = "products", qualifiedByName = "mapStringToProducts")
@@ -35,12 +35,14 @@ public interface OrderMapper {
 
     @Named("listToString")
     default String listToString(List<String> products) {
-        return ProductMapperHelper.mapProductsToString(products);
+        CombinedMapperHelper helper = new CombinedMapperHelper();
+        return helper.mapListOfItemsToStringStatic(products);
     }
 
     @Named("stringToList")
     default List<String> stringToList(String products) {
-        return ProductMapperHelper.mapStringToProducts(products);
+        CombinedMapperHelper helper = new CombinedMapperHelper();
+        return helper.mapStringToListOfItems(products);
     }
     @Named("mapOrdersToIds")
     default String mapOrdersToIds(List<Order> orders) {
