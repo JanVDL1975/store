@@ -1,0 +1,108 @@
+name: Build, Test, and Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup-build-test-publish-deploy:
+    name: Setup, Build, Test, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ECS_TASK_EXECUTION_ROLE_ARN: ${{ secrets.AWS_ECS_TASK_EXECUTION_ROLE_ARN }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      # Setup Java 22
+      - name: Set up Java 22
+        uses: actions/setup-java@v1
+        with:
+          java-version: 22
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+      # Run Maven tests
+      - name: Run Maven tests
+        run: mvn test
+
+      # Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Build, tag, and push image to Amazon ECR
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: store
+          IMAGE_TAG: latest
+        run: |
+          mvn package
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      # Prepare task definition JSON with placeholders
+      - name: Prepare task definition JSON
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: store
+          IMAGE_TAG: latest
+        run: |
+          echo "Original task-definition.json"
+          cat task-definition.json
+
+          # Escape special characters in the variables
+          ECR_REGISTRY_ESC=$(printf '%s\n' "$ECR_REGISTRY" | sed 's/[\/&]/\\&/g')
+          ECR_REPOSITORY_ESC=$(printf '%s\n' "$ECR_REPOSITORY" | sed 's/[\/&]/\\&/g')
+          IMAGE_TAG_ESC=$(printf '%s\n' "$IMAGE_TAG" | sed 's/[\/&]/\\&/g')
+
+          # Construct the repository path
+          REPO_PATH="$ECR_REGISTRY_ESC/$ECR_REPOSITORY:$IMAGE_TAG_ESC"
+
+          # Perform replacements in task-definition.json
+          sed -i "s#IMAGE_PLACEHOLDER#$REPO_PATH#g; s#ROLE_PLACEHOLDER#$AWS_ECS_TASK_EXECUTION_ROLE_ARN#g; s#REGION_PLACEHOLDER#$AWS_REGION#g; s#DB_URL_PLACEHOLDER#$DB_URL#g; s#DB_USERNAME_PLACEHOLDER#$DB_USERNAME#g; s#DB_PASSWORD_PLACEHOLDER#$DB_PASSWORD#g" task-definition.json
+
+          # sed -i "s/ROLE_PLACEHOLDER/${{ secrets.AWS_ECS_TASK_EXECUTION_ROLE_ARN }}/g" task-definition.json
+          # sed -i "s/REGION_PLACEHOLDER/${{ secrets.AWS_REGION }}/g" task-definition.json
+          # sed -i "s/DB_URL_PLACEHOLDER/$DB_URL/g" task-definition.json
+          # sed -i "s/DB_USERNAME_PLACEHOLDER/$DB_USERNAME/g" task-definition.json
+          # sed -i "s/DB_PASSWORD_PLACEHOLDER/$DB_PASSWORD/g" task-definition.json
+
+          echo "Modified task-definition.json"
+          cat task-definition.json
+
+      # Push the new image ID in the Amazon ECS task definition
+      - name: Push the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: store-container
+          image: ${{ steps.build-image.outputs.image }}
+
+      # Deploy Amazon ECS task definition
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: store-service
+          cluster: store
+          wait-for-service-stability: true
